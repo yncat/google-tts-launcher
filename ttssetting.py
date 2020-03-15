@@ -141,7 +141,8 @@ settings['speaking_rate']=inputWithCheck("音声速度の倍率(0.25～4.0)倍",
 settings['pitch']=inputWithCheck("音声の音程(-20.0～20.0)セミトーン",settings['pitch'],-20.0,20.0)
 settings['volume_gain_db']=inputWithCheck("音声の音量(-96.0～16.0)dB",settings['volume_gain_db'],-96.0,16.0)
 #音声プロファイルは作ってる途中。矢印で選択させたいけどできない。
-settings['effects_profile_id']=showMenu("適用する音声プロファイル",PROFILES,settings['effects_profile_id'])
+#settings['effects_profile_id']=showMenu("適用する音声プロファイル",PROFILES,settings['effects_profile_id'])
+print("")
 print("設定を保存中...")
 with open('settings.json', 'w', encoding='UTF-8') as f:
 	f.write(json.dumps(settings))
