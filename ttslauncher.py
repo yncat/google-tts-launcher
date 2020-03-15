@@ -7,19 +7,6 @@ import os
 import sys
 from google.cloud import texttospeech
 
-"""
-初回のインストール時には、 pip install -r requirements.txt を実行して、必要なライブラリを入れます。
-speech_key.json に、認証情報のJSONを保存して、このプログラムと同じフォルダに置きます。
-その後、
-python ttslauncher.py ファイル名.txt
-とします。
-ファイル名.txt には、しゃべらせたい言葉を改行で句切って書いたテキストファイルを指定します。
-1行で1ファイルになります。
-出力される音声ファイルのファイル名は、行の最初の10文字をとって、適当につけられます。
-出力される音声ファイルは、 out フォルダの中に作られます。
-設定は、 ttssetting.py を実行して行います。
-"""
-
 def make_name(name):
 	if len(name)<=20: return name
 	return name[0:20]+"("+str(len(name)-20)+")"
