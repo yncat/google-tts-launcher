@@ -2,6 +2,7 @@
 #Google tts launcher
 #Copyright (C) 2020 Yukio Nozawa <personal@nyanchangames.com>
 
+import json
 import os
 import sys
 from google.cloud import texttospeech
@@ -16,6 +17,7 @@ python ttslauncher.py ファイル名.txt
 1行で1ファイルになります。
 出力される音声ファイルのファイル名は、行の最初の10文字をとって、適当につけられます。
 出力される音声ファイルは、 out フォルダの中に作られます。
+設定は、 ttssetting.py を実行して行います。
 """
 
 def make_name(name):
@@ -35,6 +37,15 @@ content_filename=sys.argv[1]
 if not os.path.exists(content_filename):
 	print("Content file not found.")
 	sys.exit()
+
+SETTINGS_FILE_NAME='settings.json'
+if not os.path.exists(SETTINGS_FILE_NAME):
+	print("Please run python ttssetting.py before using this script.")
+	sys.exit()
+#end no settings
+
+with open(SETTINGS_FILE_NAME, 'r', encoding='UTF-8') as f:
+	settings=json.load(f)
 
 contents=[]
 with open(content_filename,'r',encoding='UTF-8') as f:
@@ -56,7 +67,10 @@ voice = texttospeech.types.VoiceSelectionParams(
 	ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
 )
 audio_config = texttospeech.types.AudioConfig(
-	audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16
+	audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16,
+	speaking_rate=float(settings['speaking_rate']),
+	pitch=float(settings['pitch']),
+	volume_gain_db=float(settings['volume_gain_db'])
 )
 
 total=len(contents)
