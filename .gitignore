@@ -1,0 +1,4 @@
+speech_key.json
+settings.json
+*.pyc
+./out
