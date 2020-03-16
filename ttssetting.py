@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #Google tts setting tool
 #Copyright (C) 2020 Yukio Nozawa <personal@nyanchangames.com>
-
+from consolemenu import *
+from consolemenu.items import *
 from getch import getch
 import json
 import platform
@@ -140,8 +141,32 @@ with open('settings.json', 'r', encoding='UTF-8') as f:
 settings['speaking_rate']=inputWithCheck("音声速度の倍率(0.25～4.0)倍",settings['speaking_rate'],0.25,4.0)
 settings['pitch']=inputWithCheck("音声の音程(-20.0～20.0)セミトーン",settings['pitch'],-20.0,20.0)
 settings['volume_gain_db']=inputWithCheck("音声の音量(-96.0～16.0)dB",settings['volume_gain_db'],-96.0,16.0)
-#音声プロファイルは作ってる途中。矢印で選択させたいけどできない。
-#settings['effects_profile_id']=showMenu("適用する音声プロファイル",PROFILES,settings['effects_profile_id'])
+
+all_profiles=[elem[0] for elem in PROFILES]
+selected_profiles=[]
+available_profiles=[elem[0] for elem in PROFILES]
+
+while(True):
+	if len(available_profiles)==0: break
+	menu=SelectionMenu(available_profiles,title="適用する音声プロファイル", show_exit_option=False)
+	menu.show()
+	selected_str=available_profiles[menu.selected_option]
+	selected_profiles.append(selected_str)
+	if selected_str!='None':
+		if 'None' in available_profiles: available_profiles.remove('None')
+	else:
+		break
+	#end if 
+	while(True):
+		yn=input("さらにプロファイルを追加しますか? y/n:")
+		if yn=='y' or yn=='n': break
+	#end while
+	if yn=='n': break
+	available_profiles.remove(selected_str)
+#end while
+
+if 'None' in selected_profiles: selected_profiles=None
+settings['effects_profile_id']=selected_profiles
 print("")
 print("設定を保存中...")
 with open('settings.json', 'w', encoding='UTF-8') as f:

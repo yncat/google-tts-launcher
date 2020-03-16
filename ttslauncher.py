@@ -57,7 +57,8 @@ audio_config = texttospeech.types.AudioConfig(
 	audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16,
 	speaking_rate=float(settings['speaking_rate']),
 	pitch=float(settings['pitch']),
-	volume_gain_db=float(settings['volume_gain_db'])
+	volume_gain_db=float(settings['volume_gain_db']),
+	effects_profile_id=settings['effects_profile_id']
 )
 
 total=len(contents)
