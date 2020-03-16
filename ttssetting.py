@@ -3,9 +3,7 @@
 #Copyright (C) 2020 Yukio Nozawa <personal@nyanchangames.com>
 from consolemenu import *
 from consolemenu.items import *
-from getch import getch
 import json
-import platform
 import os
 
 DEFAULT_SETTINGS={
@@ -28,36 +26,6 @@ PROFILES=[
 ]
 
 SETTINGS_FILE_NAME='settings.json'
-
-KEY_UP=0
-KEY_DOWN=1
-KEY_RETURN=2
-IS_WINDOWS=platform.system()=='Windows'
-
-def getConsoleArrowInput():
-	return _getConsoleArrowInput_win() if IS_WINDOWS else _getConsoleArrowInput_nonWin()
-
-def _getConsoleArrowInput_win():
-	key=ord(getch())
-	if key==13: return KEY_RETURN
-	if key==224:
-		key=ord(getch())
-		if key==80: return KEY_DOWN
-		if key==72: return KEY_UP
-	#end 224
-	return -1
-#end _getConsoleArrowInput_win
-
-def _getConsoleArrowInput_nonWin():
-	key=ord(getch())
-	if key==13: return KEY_RETURN
-	if key==0x1b:
-		key=ord(getch())
-		if key==0x5b:
-			key=ord(getch())
-			if key==0x41: return KEY_UP
-			if key==0x42: return KEY_DOWN
-	return -1
 
 def checkValue(val,min,max):
 	try:
@@ -84,47 +52,6 @@ def inputWithCheck(description_text,default,min,max):
 		if checkValue(ret,min,max): break
 	#end while
 	return ret
-
-def _printChoice(tup,first=False):
-	s=", ".join(tup)
-	if len(s)>80: s=s[0:80]
-	if len(s)<80:
-		l=[' '] * (90-len(s))
-		s+=(''.join(l))
-	#end padding
-	if first:
-		print("%s" % (s), end="",flush=True)
-	else:
-		print("\r%s" % (s), end="",flush=True)
-	#end print
-#end _printChoice
-
-def showMenu(description_text,selection_tuple,default):
-	print("%s 上下矢印で選択:" % description_text)
-	i=0
-	for elem in selection_tuple:
-		if default==elem[0]:
-			cursor=i
-			break
-		#end if
-		i+=1
-	#end while
-
-	_printChoice(selection_tuple[cursor],first=True)
-	while(True):
-		k=getConsoleArrowInput()
-		if k==KEY_RETURN: break
-		if k==KEY_UP:
-			if cursor==0: continue
-			cursor-=1
-		#end up
-		if k==KEY_DOWN:
-			if cursor==len(selection_tuple)-1: continue
-			cursor+=1
-		#end down
-		_printChoice(selection_tuple[cursor])
-	#end while
-	return selection_tuple[cursor][0]
 
 if not os.path.exists('settings.json'):
 	print("デフォルト設定を作成中...")
