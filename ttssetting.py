@@ -3,14 +3,56 @@
 #Copyright (C) 2020 Yukio Nozawa <personal@nyanchangames.com>
 from consolemenu import *
 from consolemenu.items import *
+from google.cloud import texttospeech
+from google.cloud.texttospeech import enums
+from copy import copy
 import json
 import os
 
+key_file_name="speech_key.json"
 DEFAULT_SETTINGS={
+	'protocol_version': 2,
 	'speaking_rate': 1.0,
 	'pitch': 0,
 	'volume_gain_db': 0,
-	'effects_profile_id': 'None'
+	'effects_profile_id': 'None',
+	'language_code': 'ja-JP',
+	'name': 'ja-JP-Wavenet-A'
+}
+
+languages={
+	'ar-XA': 'アラビア語',
+	'cs-CZ': 'チェコ語',
+	'da-DK': 'デンマーク語',
+	'nl-NL': 'オランダ語',
+	'en-AU': '英語（オーストラリア）',
+	'en-IN': '英語（インド）',
+	'en-GB': '英語（イギリス）',
+	'en-US': '英語（アメリカ）',
+	'fil-PH': 'フィリピン語',
+	'fi-FI': 'フィンランド語',
+	'fr-CA': 'フランス語（カナダ）',
+	'fr-FR': 'フランス語（フランス）',
+	'de-DE': 'ドイツ語',
+	'el-GR': 'ギリシャ語',
+	'hi-IN': 'ヒンディー語',
+	'hu-HU': 'ハンガリー語',
+	'id-ID': 'インドネシア語',
+	'it-IT': 'イタリア語',
+	'ja-JP': '日本語',
+	'ko-KR': '韓国語',
+	'cmn-CN': '標準中国語',
+	'nb-NO': 'ノルウェー語',
+	'pl-PL': 'ポーランド語',
+	'pt-BR': 'ポルトガル語（ブラジル）',
+	'pt-PT': 'ポルトガル語（ポルトガル）',
+	'ru-RU': 'ロシア語',
+	'sk-SK': 'スロバキア語',
+	'es-ES': 'スペイン語',
+	'sv-SE': 'スウェーデン語',
+	'tr-TR': 'トルコ語',
+	'uk-UA': 'ウクライナ語',
+	'vi-VN': 'ベトナム語'
 }
 
 PROFILES=[
@@ -53,6 +95,63 @@ def inputWithCheck(description_text,default,min,max):
 	#end while
 	return ret
 
+def voiceSetting():
+	print("音声エンジンを取得中...")
+	os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath(key_file_name)
+	client = texttospeech.TextToSpeechClient()
+	voices = client.list_voices()
+	voices_list=[]
+	for voice in voices.voices:
+		name=voice.name
+		lc=[]
+		for language_code in voice.language_codes:
+			lc.append(language_code)
+		#end language
+		ssml_gender=enums.SsmlVoiceGender(voice.ssml_gender)
+		gender=ssml_gender.name
+		voices_list.append((name,lc,gender))
+	#
+	language_code_dict={}
+	for elem in voices_list:
+		for elem2 in elem[1]:
+			if not elem2 in language_code_dict: language_code_dict[elem2]=1
+		#end for
+	#end for
+	language_code_list=list(language_code_dict)
+	language_code_list.sort()
+	sel=[]
+	for elem in language_code_list:
+		s="%s(%s)" % (elem,languages[elem]) if elem in languages else elem
+		sel.append(s)
+	#end append
+	menu=SelectionMenu(sel,title="言語コード", show_exit_option=False)
+	menu.show()
+	l=language_code_list[menu.selected_option]
+	sel=[]
+	sel2=[]
+	for elem in voices_list:
+		if l in elem[1]:
+			sel.append("%s %s" % (elem[0], elem[2]))
+			sel2.append(elem[0])
+	#end append
+	menu=SelectionMenu(sel,title="使用する音声", show_exit_option=False)
+	menu.show()
+	v=sel2[menu.selected_option]
+	global settings
+	settings['language_code']=l
+	settings['name']=v
+
+def rewriteSettings():
+	global settings
+	print("設定をアップデート中...")
+	d=copy(DEFAULT_SETTINGS)
+	d['speaking_rate']=settings['speaking_rate']
+	d['pitch']=settings['pitch']
+	d['volume_gain_db']=settings['volume_gain_db']
+	d['effects_profile_id']=settings['effects_profile_id']
+	settings=d
+#end rewriteSettings
+
 if not os.path.exists('settings.json'):
 	print("デフォルト設定を作成中...")
 	with open('settings.json', 'w', encoding='UTF-8') as f:
@@ -64,6 +163,8 @@ print("設定を読み込み中...")
 with open('settings.json', 'r', encoding='UTF-8') as f:
 	settings=json.load(f)
 	#end open
+
+if not 'protocol_version' in settings: rewriteSettings()
 
 settings['speaking_rate']=inputWithCheck("音声速度の倍率(0.25～4.0)倍",settings['speaking_rate'],0.25,4.0)
 settings['pitch']=inputWithCheck("音声の音程(-20.0～20.0)セミトーン",settings['pitch'],-20.0,20.0)
@@ -94,6 +195,11 @@ while(True):
 
 if 'None' in selected_profiles: selected_profiles=None
 settings['effects_profile_id']=selected_profiles
+if os.path.exists(key_file_name):
+	voiceSetting()
+else:
+	print("認証情報がないため、音声設定をスキップします。")
+#end voice setting
 print("")
 print("設定を保存中...")
 with open('settings.json', 'w', encoding='UTF-8') as f:

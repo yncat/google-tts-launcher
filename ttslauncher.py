@@ -34,6 +34,11 @@ if not os.path.exists(SETTINGS_FILE_NAME):
 with open(SETTINGS_FILE_NAME, 'r', encoding='UTF-8') as f:
 	settings=json.load(f)
 
+if not 'protocol_version' in settings:
+	print("Please run ttssetting.py to update settings.")
+	sys.exit(0)
+#end incompatible
+
 contents=[]
 with open(content_filename,'r',encoding='UTF-8') as f:
 	for elem in f:
@@ -49,9 +54,9 @@ if not os.path.isdir("out"):
 
 client = texttospeech.TextToSpeechClient()
 voice = texttospeech.types.VoiceSelectionParams(
-	language_code='ja-JP',
-	name='ja-JP-Standard-A',
-	ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
+	language_code=settings['language_code'],
+	name=settings['name'],
+	#ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
 )
 audio_config = texttospeech.types.AudioConfig(
 	audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16,
