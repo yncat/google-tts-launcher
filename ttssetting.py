@@ -8,9 +8,11 @@ from google.cloud.texttospeech import enums
 from copy import copy
 import json
 import os
+import re
 
+SETTING_FILE_NAME_PATTERN=re.compile(r"\A[a-zA-Z0-9_\-]+\Z")
 key_file_name="speech_key.json"
-DEFAULT_SETTINGS={
+settings={
 	'protocol_version': 2,
 	'speaking_rate': 1.0,
 	'pitch': 0,
@@ -66,8 +68,6 @@ PROFILES=[
 	('large-automotive-class-device', '車載用スピーカー'),
 	('telephony-class-application', 'インタラクティブ音声レスポンス（IVR）システム')
 ]
-
-SETTINGS_FILE_NAME='settings.json'
 
 def checkValue(val,min,max):
 	try:
@@ -152,17 +152,9 @@ def rewriteSettings():
 	settings=d
 #end rewriteSettings
 
-if not os.path.exists('settings.json'):
-	print("デフォルト設定を作成中...")
-	with open('settings.json', 'w', encoding='UTF-8') as f:
-		f.write(json.dumps(DEFAULT_SETTINGS))
-	#end open
-#end make default settings
-
-print("設定を読み込み中...")
-with open('settings.json', 'r', encoding='UTF-8') as f:
-	settings=json.load(f)
-	#end open
+if not os.path.isdir("settings"):
+	print("設定フォルダを作成中...")
+	os.mkdir("settings")
 
 if not 'protocol_version' in settings: rewriteSettings()
 
@@ -201,8 +193,13 @@ else:
 	print("認証情報がないため、音声設定をスキップします。")
 #end voice setting
 print("")
-print("設定を保存中...")
-with open('settings.json', 'w', encoding='UTF-8') as f:
+while(True):
+	n=input("この設定につける名前:")
+	if re.match(SETTING_FILE_NAME_PATTERN,n): break
+	print("設定の名前には、半角アルファベット、数字、アンダースコア、ハイフン以外を使えません。")
+
+print("設定 %s を保存中..." % n)
+with open("settings/%s.json" % (n), 'w', encoding='UTF-8') as f:
 	f.write(json.dumps(settings))
 #end open
 print(settings)

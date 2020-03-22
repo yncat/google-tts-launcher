@@ -1,4 +1,6 @@
 speech_key.json
 settings.json
 *.pyc
-./out
+out/
+settings/
+test.txt

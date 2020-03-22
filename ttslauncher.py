@@ -2,40 +2,56 @@
 #Google tts launcher
 #Copyright (C) 2020 Yukio Nozawa <personal@nyanchangames.com>
 
+from consolemenu import *
+from consolemenu.items import *
+import glob
 import json
 import os
 import sys
 from google.cloud import texttospeech
 
-def make_name(name):
-	if len(name)<=20: return name
-	return name[0:20]+"("+str(len(name)-20)+")"
+def make_name(name,setting_name):
+	if len(name)<=20: return "%s %s" % (setting_name,name)
+	return "%s %s" % (setting_name,name[0:20]+"("+str(len(name)-20)+")")
+
+def selectSetting():
+	jsons=[os.path.basename(elem).split(".")[0] for elem in glob.glob("settings/*.json")]
+	menu=SelectionMenu(jsons,title="使用する設定", show_exit_option=False)
+	menu.show()
+	return jsons[menu.selected_option]
 
 if len(sys.argv)==1:
-	print("Usage: python ttslauncher.py filename.txt")
+	print("使い方: python ttslauncher.py filename.txt settingname")
 	sys.exit()
 
 key_file_name="speech_key.json"
 if not os.path.exists(key_file_name):
-	print("Key file not found.")
+	print("キーファイルが見つかりません。")
 	sys.exit()
 
 content_filename=sys.argv[1]
 if not os.path.exists(content_filename):
-	print("Content file not found.")
+	print("コンテンツファイルが見つかりません。")
 	sys.exit()
 
-SETTINGS_FILE_NAME='settings.json'
-if not os.path.exists(SETTINGS_FILE_NAME):
-	print("Please run python ttssetting.py before using this script.")
-	sys.exit()
-#end no settings
+if len(sys.argv)==2:
+	setting_name=selectSetting()
+else:
+	if os.path.exists("settings/%s.json" % sys.argv[2]):
+		setting_name=sys.argv[2]
+	else:
+		print("指定された設定ファイルが見つかりません。次の中から選んでください。")
+		setting_name=selectSetting()
+	#end no setting file
+#end 
 
-with open(SETTINGS_FILE_NAME, 'r', encoding='UTF-8') as f:
+print("設定: %s" % setting_name)
+
+with open("settings/%s.json" % (setting_name), 'r', encoding='UTF-8') as f:
 	settings=json.load(f)
 
 if not 'protocol_version' in settings:
-	print("Please run ttssetting.py to update settings.")
+	print("この設定は、互換性がないので使えません。")
 	sys.exit(0)
 #end incompatible
 
@@ -44,7 +60,7 @@ with open(content_filename,'r',encoding='UTF-8') as f:
 	for elem in f:
 		contents.append(elem.rstrip())
 
-print("From %s" % content_filename)
+print("入力ファイル %s" % content_filename)
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath(key_file_name)
 
@@ -68,13 +84,13 @@ audio_config = texttospeech.types.AudioConfig(
 
 total=len(contents)
 processed=0
-skipped=0
+skipped=[]
 
 for elem in contents:
-	name=make_name(elem)
+	name=make_name(elem,setting_name)
 	if os.path.exists("out/%s.wav" % name):
 		processed+=1
-		skipped+=1
+		skipped.append(name)
 		continue
 
 	input_text = texttospeech.types.SynthesisInput(text=elem)
@@ -86,5 +102,9 @@ for elem in contents:
 	print("\r%d%%(%d/%d)" % (processed/total*100,processed,total), end="")
 
 print("")
-ret="OK!" if skipped==0 else "OK! (%d skipped)" % skipped
-print(ret)
+if len(skipped)>0:
+	for elem in skipped:
+		print("%s は、すでにあったのでスキップしました。" % elem)
+	#end for
+#end skipped display
+print("OK!")
