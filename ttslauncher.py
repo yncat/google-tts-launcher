@@ -10,9 +10,9 @@ import os
 import sys
 from google.cloud import texttospeech
 
-def make_name(name,setting_name):
-	if len(name)<=20: return "%s %s" % (setting_name,name)
-	return "%s %s" % (setting_name,name[0:20]+"("+str(len(name)-20)+")")
+def make_name(name,setting_name,line_number):
+	if len(name)<=20: return "v_%d_%s_%s" % (line_number,setting_name,name)
+	return "v_%d_%s_%s" % (line_number,setting_name,name[0:20]+"("+str(len(name)-20)+")")
 
 def selectSetting():
 	jsons=[os.path.basename(elem).split(".")[0] for elem in glob.glob("settings/*.json")]
@@ -85,9 +85,11 @@ audio_config = texttospeech.types.AudioConfig(
 total=len(contents)
 processed=0
 skipped=[]
+line_number=0
 
 for elem in contents:
-	name=make_name(elem,setting_name)
+	name=make_name(elem,setting_name,line_number)
+	line_number+=1
 	if os.path.exists("out/%s.wav" % name):
 		processed+=1
 		skipped.append(name)
