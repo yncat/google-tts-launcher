@@ -4,7 +4,6 @@
 from consolemenu import *
 from consolemenu.items import *
 from google.cloud import texttospeech
-from google.cloud.texttospeech import enums
 from copy import copy
 import json
 import os
@@ -112,7 +111,7 @@ def voiceSetting():
         for language_code in voice.language_codes:
             lc.append(language_code)
         # end language
-        ssml_gender = enums.SsmlVoiceGender(voice.ssml_gender)
+        ssml_gender = texttospeech.SsmlVoiceGender(voice.ssml_gender)
         gender = ssml_gender.name
         voices_list.append((name, lc, gender))
     #

@@ -75,13 +75,13 @@ if not os.path.isdir("out"):
     print("out directory created.")
 
 client = texttospeech.TextToSpeechClient()
-voice = texttospeech.types.VoiceSelectionParams(
+voice = texttospeech.VoiceSelectionParams(
     language_code=settings['language_code'],
     name=settings['name'],
-    # ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
+    # ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
 )
-audio_config = texttospeech.types.AudioConfig(
-    audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16,
+audio_config = texttospeech.AudioConfig(
+    audio_encoding=texttospeech.AudioEncoding.LINEAR16,
     speaking_rate=float(settings['speaking_rate']),
     pitch=float(settings['pitch']),
     volume_gain_db=float(settings['volume_gain_db']),
@@ -101,8 +101,8 @@ for elem in contents:
         skipped.append(name)
         continue
 
-    input_text = texttospeech.types.SynthesisInput(text=elem)
-    response = client.synthesize_speech(input_text, voice, audio_config)
+    input_text = texttospeech.SynthesisInput(text=elem)
+    response = client.synthesize_speech(input=input_text, voice=voice, audio_config=audio_config)
     with open("out/%s.wav" % (name), 'wb') as out:
         out.write(response.audio_content)
 
