@@ -12,7 +12,7 @@ python ttssetting.py
 
 設定が完了したら、
 
-python ttslauncher.py
+python ttslauncher.py ファイル名.txt 設定名
 
 とします。
 
