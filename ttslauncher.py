@@ -10,6 +10,8 @@ import os
 import sys
 from google.cloud import texttospeech
 
+def is_comment(elem):
+    return len(elem)>0 and elem[0] == "#"
 
 def make_name(name, setting_name, line_number):
     if len(name) <= 20:
@@ -64,7 +66,7 @@ if 'protocol_version' not in settings:
 contents = []
 with open(content_filename, 'r', encoding='UTF-8') as f:
     for elem in f:
-        contents.append(elem.rstrip())
+        if not is_comment(elem): contents.append(elem.rstrip())
 
 print("入力ファイル %s" % content_filename)
 
